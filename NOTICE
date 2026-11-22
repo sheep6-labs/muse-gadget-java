@@ -1,0 +1,37 @@
+muse-gadget-java
+Copyright 2026 the muse-gadget-java contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+== Derivation from the Muse Gadgets SDK ==
+
+This project is an independent Java re-implementation of the protocol parts of
+the Muse Gadgets SDK (https://github.com/facebookincubator/muse-gadget-sdk),
+Copyright (c) Meta Platforms, Inc. and affiliates, licensed under the Apache
+License, Version 2.0.
+
+Changes relative to the SDK:
+  * The protocol (BLE pairing v5 cryptography and message handling, Noise_XX
+    transport, /link-control framing, request-body rules) is re-implemented in
+    pure Java (Java 8 source level) instead of the SDK's original languages.
+  * The code is written so that it can run on Android; it has no Android
+    dependency itself.
+  * tests/vectors/link_pairing_v5.json is an unmodified copy of the SDK's
+    linux/tests/vectors/link_pairing_v5.json (Apache-2.0, Copyright Meta
+    Platforms, Inc. and affiliates). It is synthetic public test data. The
+    names it contains (device ids, node ids) are the SDK's own examples.
+
+== Third-party dependency ==
+
+noise-java (https://github.com/rweather/noise-java), Copyright (c) Southern
+Storm Software, Pty Ltd, MIT License. It is not bundled: build-and-test.sh
+clones it at a pinned commit (49377b6dfc6a1e75740bce2318118291a57c0d6e) into
+build-deps/ and compiles it together with this project.
+
+== Trademarks and service terms ==
+
+This project is not an official product of Meta Platforms, Inc., and is not
+affiliated with or endorsed by Meta or the Muse product. "Muse" and "Meta" are
+trademarks of their respective owners. Using the Muse Gadgets service requires
+your own SDK token and is subject to the service's terms; this project does not
+provide or include any credentials.
