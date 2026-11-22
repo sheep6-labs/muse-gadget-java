@@ -59,7 +59,7 @@ The library does no I/O and makes no policy decisions, so the application embedd
   every new `pairing_client_hello` discards any pairing session still in progress, so an unthrottled or ungated peer
   could keep resetting a legitimate pairing.
 - **Reassemble BLE messages and cap them at 8,192 bytes.** Joining BLE fragments into a message happens in the host,
-  which should cap the reassembled message at 8,192 bytes while it buffers. As a second line of defence,
+  which should cap the reassembled message at 8,192 bytes while it buffers. As a second line of defense,
   `PairingProtocol.onMessage` rejects raw input larger than `PairingProtocol.MAX_MESSAGE_BYTES` (8,192) before
   parsing it.
 - **Know what the Noise layer does not authenticate.** The library does not pin the peer's static Noise key.
