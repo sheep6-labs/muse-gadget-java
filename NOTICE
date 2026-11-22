@@ -10,6 +10,11 @@ the Muse Gadgets SDK (https://github.com/facebookincubator/muse-gadget-sdk),
 Copyright (c) Meta Platforms, Inc. and affiliates, licensed under the Apache
 License, Version 2.0.
 
+Base version: this re-implementation is based on the SDK at commit
+7b302e37561652eefcc8a4d58085de6f7f800f29 (2026-11-12), specifically its
+linux/ (Python) implementation and bundled test vectors. Later upstream
+changes are not automatically reflected here.
+
 Changes relative to the SDK:
   * The protocol (BLE pairing v5 cryptography and message handling, Noise_XX
     transport, /link-control framing, request-body rules) is re-implemented in
