@@ -35,6 +35,23 @@ public final class TextTest {
         T.eq("stream: !? run split across deltas stays one sentence", "[, , えっ！？]", String.valueOf(stream(0, "えっ！", "？")));
         T.eq("stream: deltas == whole-text split", j(Sentences.split("今日は晴れ。明日は雨？「はい。」終わり")),
                 j(joinAll(stream(0, "今", "日は晴れ", "。明日は", "雨？「", "はい。」", "終わ", "り"))));
+        // --- English full stops
+        T.eq("en: . ? !", "Hello world.|How are you?|Fine!", j(Sentences.split("Hello world. How are you? Fine!")));
+        T.eq("en: decimal does not split", "It costs 3.14 dollars.|OK.", j(Sentences.split("It costs 3.14 dollars. OK.")));
+        T.eq("en: title abbreviation joins", "Dr. Smith went home.|He slept.", j(Sentences.split("Dr. Smith went home. He slept.")));
+        T.eq("en: e.g. joins", "Use e.g. this one.|Done.", j(Sentences.split("Use e.g. this one. Done.")));
+        T.eq("en: domain does not split", "Visit example.com.|Then rest.", j(Sentences.split("Visit example.com. Then rest.")));
+        T.eq("en: ellipsis does not split", "Well... maybe so.|Yes.", j(Sentences.split("Well... maybe so. Yes.")));
+        T.eq("en: etc. before lowercase joins, before uppercase splits", "Pens, etc. are here.|Pens, etc.|Then more.", j(Sentences.split("Pens, etc. are here. Pens, etc. Then more.")));
+        T.eq("en: closing quote stays with the sentence", "He said \"Go.\"|Then left.", j(Sentences.split("He said \"Go.\" Then left.")));
+        T.eq("en: opening quote / digit starts a sentence", "Stop.|\"Go,\" he said.|2 more.", j(Sentences.split("Stop. \"Go,\" he said. 2 more.")));
+        T.eq("en: lowercase after a full stop does not split", "see fig. 2 for details.", j(Sentences.split("see fig. 2 for details.")));
+        T.eq("en: pronoun I at the end splits, initials join", "So do I.|J. Smith too.", j(Sentences.split("So do I. J. Smith too.")));
+        T.eq("en: mixed with Japanese", "今日は晴れです。|Tomorrow too.|そうですね。", j(Sentences.split("今日は晴れです。Tomorrow too. そうですね。")));
+        T.eq("en: stream trailing full stop waits for the next delta", "[, Hello., World.]", String.valueOf(stream(0, "Hello.", " World.")));
+        T.eq("en: stream decimal split across deltas", "[, , It is 3.14 kg.]", String.valueOf(stream(0, "It is 3.", "14 kg.")));
+        T.eq("en: stream release once the next sentence starts", "[Hello., , World.]", String.valueOf(stream(0, "Hello. W", "orld.")));
+
         // --- soft limit: cut a terminator-less run at its last comma
         String longRun = "あいうえお、かきくけこ、さしすせそ";
         T.eq("soft limit cuts at last comma", "あいうえお、かきくけこ、|さしすせそ", j(joinAll(stream(10, longRun))));

@@ -5,7 +5,9 @@ import java.util.List;
 
 /**
  * Incremental sentence splitter: feed streamed text deltas, get each sentence as soon as its end is certain.
- * A sentence ends at a terminator (。！？!?) plus any closing marks after it, or at a line break. A terminator at the
+ * A sentence ends at a terminator (。！？!?) plus any closing marks after it, or at a line break. An English full stop
+ * ends a sentence only when followed by whitespace and a plausible sentence start (not in "3.14", "example.com",
+ * "Dr. Smith", "e.g. this" or "..."); see {@link Sentences#periodEnd}. A terminator at the
  * very end of the buffer is not final yet (a closing mark such as 」 may still follow in the next delta), so it waits
  * for the next character or for {@link #flush()}. With a soft limit, an over-long run without a terminator is cut at
  * its last comma so the first words are not held back by one huge sentence. Independently of that, a run reaching
@@ -30,6 +32,15 @@ public final class SentenceStream {
             if (c == '\n' || c == '\r') {
                 emit(start, i, out);
                 start = ++i;
+            } else if (c == '.') {
+                int end = Sentences.periodEnd(pending, i);
+                if (end == Sentences.PERIOD_WAIT) break; // a digit, closer or next sentence may follow in the next delta
+                if (end == Sentences.PERIOD_NONE) {
+                    i++;
+                } else {
+                    emit(start, end, out);
+                    start = i = end;
+                }
             } else if (Sentences.isTerminator(c)) {
                 int j = i + 1;
                 while (j < n && Sentences.isCloser(pending.charAt(j))) j++;
