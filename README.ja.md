@@ -23,6 +23,7 @@ SDK に対して何を変えたか、意図的な差分、その基準から上�
 ## Demo（デモ）
 
 この core を使った Android ガジェットの動作デモ: [X の投稿](https://x.com/sakura_beers/status/2124302946074829072)
+同じガジェットが英語で話す版（Piper とサーバ音声）: [英語デモの X 投稿](https://x.com/sakura_beers/status/2124498448837968031)
 
 ## Scope（範囲）
 

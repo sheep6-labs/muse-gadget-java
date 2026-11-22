@@ -24,6 +24,7 @@ upstream drift since that base are documented in [NOTICE](NOTICE).
 ## Demo
 
 A working Android gadget built on this core, in conversation: [demo post on X](https://x.com/sakura_beers/status/2124302946074829072).
+The same gadget speaking English (Piper and server voices): [English demo post on X](https://x.com/sakura_beers/status/2124498448837968031).
 
 ## Scope
 
