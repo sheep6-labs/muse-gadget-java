@@ -15,6 +15,10 @@ Android app on a Pixel 8a: pairing, Noise connection and voice conversation.
 It is an **independent, unofficial** project, not a product of Meta Platforms, Inc., and is licensed under
 Apache-2.0 like the upstream SDK. Attribution and trademark details are in [NOTICE](NOTICE).
 
+## Demo
+
+A working Android gadget built on this core, in conversation: [demo post on X](https://x.com/sakura_beers/status/2124302946074829072).
+
 ## Scope
 
 Included (package `dev.musegadget.core`):
