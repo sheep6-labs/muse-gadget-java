@@ -150,6 +150,12 @@ Pixel 8a 上の Android アプリでエンドツーエンドに動作を確認�
 Android 10 / API 29 以降。上の Host requirements を参照）。このリポジトリに含まれるのはプロトコルコア
 だけで、JAR などのリリース成果物はまだ公開していません。API は変更される可能性があります。
 
+そのアプリでの音声合成は、このライブラリの外で扱っています。音声を足す人への実測データとして（Pixel 8a、
+2026年11月計測）: sherpa-onnx と Piper ボイス（en_US-amy-medium）による端末上の英語 TTS は、本ライブラリの
+`text` パッケージで返信を文に分割して文単位で合成すると、RTF 0.11〜0.14、最初の音まで約0.2〜0.3秒で動作
+しました。sherpa-onnx は 1.x 系（1.13.8 で確認）にピン留めしてください。2.x は espeak-ng の音素化エンジンを
+内蔵しておらず、Piper ボイスがエラーを出さずに空の音声を返すようになります。
+
 ## License（ライセンス）
 
 Apache License 2.0 です。[LICENSE](LICENSE) と [NOTICE](NOTICE) を参照してください。noise-java は MIT ライセンスで、

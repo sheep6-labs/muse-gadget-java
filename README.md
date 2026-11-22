@@ -157,6 +157,13 @@ Extracted from code that has been verified end to end in an Android app on a Pix
 or later is the supported baseline; see [Host requirements](#host-requirements)). This repository contains
 only the protocol core; no JAR or release artifact is published yet. APIs may change.
 
+Speech in that app is handled outside this library. One data point for builders who add it (measured on a
+Pixel 8a, November 2026): on-device English TTS with sherpa-onnx and a Piper voice (en_US-amy-medium) runs
+at RTF 0.11–0.14, with first audio in about 0.2–0.3 s, when replies are split into sentences with this
+library's `text` package and synthesized sentence by sentence. Pin sherpa-onnx to the 1.x line (verified
+with 1.13.8): 2.x no longer bundles the espeak-ng phonemizer, and Piper voices then fail silently,
+returning empty audio instead of raising an error.
+
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). noise-java is MIT-licensed and is
