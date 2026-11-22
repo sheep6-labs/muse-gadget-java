@@ -14,6 +14,12 @@ Pixel 8a の Android アプリで、ペアリング、Noise 接続、音声会�
 **独立した非公式のプロジェクト**で、Meta Platforms, Inc. の製品ではなく、上流 SDK と同じく Apache-2.0 でライセンスされています。
 帰属と商標の詳細は [NOTICE](NOTICE) を参照してください。
 
+## Upstream base（上流との関係）
+
+Muse Gadgets SDK のコミット `7b302e3`（2026-11-12）、主にその `linux/` 実装からの再実装です。
+SDK に対して何を変えたか、意図的な差分、その基準から上流がどれだけ進んだかの確認方法は
+[NOTICE](NOTICE) にまとめています。
+
 ## Demo（デモ）
 
 この core を使った Android ガジェットの動作デモ: [X の投稿](https://x.com/sakura_beers/status/2124302946074829072)

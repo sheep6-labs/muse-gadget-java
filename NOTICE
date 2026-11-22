@@ -25,6 +25,27 @@ Changes relative to the SDK:
     linux/tests/vectors/link_pairing_v5.json (Apache-2.0, Copyright Meta
     Platforms, Inc. and affiliates). It is synthetic public test data. The
     names it contains (device ids, node ids) are the SDK's own examples.
+  * Files derived from the SDK carry a short attribution header naming
+    their origin.
+
+Intentional divergences from the SDK's behavior (hardening and API
+choices made in this port, not in the base version):
+  * JSON parsing rejects duplicate keys.
+  * Inbound size caps where the SDK leaves inputs unbounded: a pairing
+    message is rejected past 8,192 bytes before parsing, Noise frame
+    reassembly is capped at 32 MiB of pending bytes in total, and a
+    single /link-control fragment is capped at 16 MiB.
+  * SdkToken exposes no partial-token "hint"; it reports only whether a
+    token is set (SdkToken.status()).
+  * SentenceStream force-flushes at 2,048 characters even when no
+    sentence terminator has arrived.
+
+Checking upstream drift: the protocol surface this port depends on
+lives in the SDK's linux/ and protocols/ directories. Everything that
+changed upstream since the base commit is visible at
+https://github.com/facebookincubator/muse-gadget-sdk/compare/7b302e37561652eefcc8a4d58085de6f7f800f29...main
+As of 2026-11-22, upstream was 99 commits ahead of the base, with no
+changes under linux/ or protocols/.
 
 == Third-party dependency ==
 

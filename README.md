@@ -15,6 +15,12 @@ Android app on a Pixel 8a: pairing, Noise connection and voice conversation.
 It is an **independent, unofficial** project, not a product of Meta Platforms, Inc., and is licensed under
 Apache-2.0 like the upstream SDK. Attribution and trademark details are in [NOTICE](NOTICE).
 
+## Upstream base
+
+Re-implemented from the Muse Gadgets SDK at commit `7b302e3` (2026-11-12), mainly its `linux/`
+implementation. What was changed relative to the SDK, the intentional divergences, and how to check
+upstream drift since that base are documented in [NOTICE](NOTICE).
+
 ## Demo
 
 A working Android gadget built on this core, in conversation: [demo post on X](https://x.com/sakura_beers/status/2124302946074829072).
