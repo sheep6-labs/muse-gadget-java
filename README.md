@@ -9,7 +9,7 @@ Protocol building blocks for turning an Android device into a voice-conversation
 `muse-gadget-java` is a pure-Java re-implementation of the protocol core of the
 [Muse Gadgets SDK](https://github.com/facebookincubator/muse-gadget-sdk). It implements the Muse Gadgets
 protocol — BLE pairing, the Noise transport and the `/link-control` link — so that a gadget (the device side
-of the protocol) can be written on a JVM or on Android. It is extracted from code that runs end to end in an
+of the protocol) can be written on a JVM or on Android. It is extracted from code that runs end-to-end in an
 Android app on a Pixel 8a: pairing, Noise connection and voice conversation.
 
 It is an **independent, unofficial** project, not a product of Meta Platforms, Inc., and is licensed under
