@@ -24,13 +24,16 @@ public final class PairingVectorTest {
                 : "tests/vectors/link_pairing_v5.json";
         Map<String, Object> doc = Json.parseObject(new String(Files.readAllBytes(Paths.get(path)), UTF8));
         List<Object> vectors = (List<Object>) doc.get("vectors");
-        T.check("vector file has 3 vectors", vectors.size() == 3, "n=" + vectors.size());
+        T.check("vector file has 5 vectors", vectors.size() == 5, "n=" + vectors.size());
         for (Object o : vectors) crypto((Map<String, Object>) o);
         for (Object o : vectors) {
             Map<String, Object> v = (Map<String, Object>) o;
             if ("community_app_v5".equals(v.get("name"))) session(v);
         }
-        sessionNegatives((Map<String, Object>) vectors.get(vectors.size() - 1));
+        for (Object o : vectors) {
+            Map<String, Object> v = (Map<String, Object>) o;
+            if ("community_app_v5".equals(v.get("name"))) sessionNegatives(v);
+        }
         for (Object o : vectors) {
             Map<String, Object> v = (Map<String, Object>) o;
             if ("community_app_v5".equals(v.get("name"))) sdkToken(v);
