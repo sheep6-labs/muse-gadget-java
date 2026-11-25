@@ -34,7 +34,7 @@ javac -source 8 -target 8 -Xlint:-options -encoding UTF-8 -d "$OUT/classes" @"$O
 
 echo "[2/3] tests"
 rc=0
-for t in PairingVectorTest NoiseLoopbackTest LinkFramingTest TextTest UploadTest; do
+for t in PairingVectorTest NoiseLoopbackTest LinkFramingTest TextTest UploadTest ServerHostsTest; do
   echo "=== $t ==="
   if [ "$t" = PairingVectorTest ]; then
     java -cp "$OUT/classes" "$t" "$VECTORS" || rc=1
