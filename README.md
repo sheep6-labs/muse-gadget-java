@@ -67,6 +67,10 @@ The library does no I/O and makes no policy decisions, so the application embedd
 - **Know what the Noise layer does not authenticate.** The library does not pin the peer's static Noise key.
   Authenticating the server relies on the outer WSS/TLS connection and the service token, so the host must make that
   connection to the intended service endpoint over verified TLS.
+- **Validate server hosts from pairing.** Before connecting, check the servers named by `provision_v2` against the
+  known Muse servers: the API base must be `https://api.muse.ai` (or `https://hatch-api.meta.ai` for the legacy
+  field) and the Noise host `hatch.metaaivm.com`. The `net.ServerHosts` helper implements exactly this check,
+  mirroring the upstream Linux and ESP32 clients.
 - **Privacy note.** `get_device_info` is answered in plaintext before pairing and includes the device identifier
   (this is how the upstream protocol behaves). Anyone in BLE range can read it.
 - **Manage Wi-Fi yourself.** Connecting to a network belongs to the host (the OS or your app). A `provision_v2`
