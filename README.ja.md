@@ -8,7 +8,7 @@ Android 端末を Muse の音声会話ガジェットにするためのプロト
 
 `muse-gadget-java` は、[Muse Gadgets SDK](https://github.com/facebookincubator/muse-gadget-sdk) のプロトコル部分を
 純 Java で再実装したライブラリです。Muse Gadgets のプロトコル（BLE ペアリング、Noise トランスポート、
-`/link-control` リンク）を実装しており、JVM や Android 上にガジェット（プロトコルのデバイス側）を書けます。
+`/api/gadget/control` リンク）を実装しており、JVM や Android 上にガジェット（プロトコルのデバイス側）を書けます。
 Pixel 8a の Android アプリで、ペアリング、Noise 接続、音声会話までエンドツーエンドに動作しているコードから切り出しました。
 
 **独立した非公式のプロジェクト**で、Meta Platforms, Inc. の製品ではなく、上流 SDK と同じく Apache-2.0 でライセンスされています。
@@ -31,7 +31,7 @@ SDK に対して何を変えたか、意図的な差分、その基準から上�
 
 - BLE ペアリング v5 の暗号とプロトコル処理、デバイス側（`pairing`）
 - Noise_XX トランスポート: ハンドシェイク、エンベロープ、フレーム分割（`noise`）
-- `/link-control` のリンクフレーミングと、リクエストボディのアップロード規則（`link`）
+- `/api/gadget/control` のリンクフレーミングと、リクエストボディのアップロード規則（`link`）
 - テキストユーティリティ: 文の分割とストリーミング分割（`text`）
 - 小さな補助: HKDF、hex、base64url、JSON（`util`、`json`）
 
@@ -98,7 +98,7 @@ Android 10（API 29）以降の実機のアプリで使用して確認してい�
 | `pairing` | `SdkToken` | SDK トークンの書式チェックと、安全な set/unset 状態 |
 | `noise` | `NoiseHandshake` | `Noise_XX_25519_AESGCM_SHA256` のハンドシェイク。`initiator()` がガジェット側 |
 | `noise` | `NoiseTransport` | リクエストの暗号化、サーバーフレームの復号、チャンク処理 |
-| `link` | `LinkFraming` | `/link-control` のフレーミング: 長さ前置の JSON メッセージ、keepalive |
+| `link` | `LinkFraming` | `/api/gadget/control` のフレーミング: 長さ前置の JSON メッセージ、keepalive |
 | `link` | `Upload` | リクエストボディのサイズ上限と 16 KiB 分割 |
 | `text` | `Sentences`, `SentenceStream` | 全文／ストリーム差分に対する文分割 |
 
@@ -126,8 +126,8 @@ hs.readMessage2(receivedMsg2);         // 受信
 byte[] msg3 = hs.writeMessage3();      // 送信
 NoiseTransport noise = hs.split();
 
-// 3. /link-control: ストリームを開き、長さ前置の JSON メッセージを送る
-NoiseTransport.Encrypted stream = noise.openStream("POST", "/link-control", null);
+// 3. /api/gadget/control: ストリームを開き、長さ前置の JSON メッセージを送る
+NoiseTransport.Encrypted stream = noise.openStream("POST", "/api/gadget/control", null, Envelope.SERVICE_GADGET);
 // stream.frames を送信してから:
 byte[] framed = LinkFraming.encode("{\"type\":\"...\"}");
 for (byte[] frame : noise.bodyChunk(stream.streamId, framed, false)) { /* frame を送信 */ }
@@ -140,7 +140,7 @@ if (f != null && f.bodyChunk != null) {
 ```
 
 [`examples/MinimalExample.java`](examples/MinimalExample.java) は、コンパイルできる完全なプログラム（ネットワーク不要）で、
-Noise ハンドシェイクを行い、`/link-control` のメッセージを双方向に 1 つずつやり取りします。各部分の動く使用例は
+Noise ハンドシェイクを行い、`/api/gadget/control` のメッセージを双方向に 1 つずつやり取りします。各部分の動く使用例は
 `tests/` にもあります（たとえば `NoiseLoopbackTest`、`LinkFramingTest`）。
 
 ## Service note（サービス利用の注意）

@@ -8,7 +8,7 @@ Protocol building blocks for turning an Android device into a voice-conversation
 
 `muse-gadget-java` is a pure-Java re-implementation of the protocol core of the
 [Muse Gadgets SDK](https://github.com/facebookincubator/muse-gadget-sdk). It implements the Muse Gadgets
-protocol — BLE pairing, the Noise transport and the `/link-control` link — so that a gadget (the device side
+protocol — BLE pairing, the Noise transport and the `/api/gadget/control` link — so that a gadget (the device side
 of the protocol) can be written on a JVM or on Android. It is extracted from code that runs end-to-end in an
 Android app on a Pixel 8a: pairing, Noise connection and voice conversation.
 
@@ -32,7 +32,7 @@ Included (package `dev.musegadget.core`):
 
 - BLE pairing v5 cryptography and protocol handling, device side (`pairing`)
 - Noise_XX transport: handshake, envelope, frame chunking (`noise`)
-- `/link-control` link framing and request-body upload rules (`link`)
+- `/api/gadget/control` link framing and request-body upload rules (`link`)
 - Text utilities: sentence splitting and streaming (`text`)
 - Small helpers: HKDF, hex, base64url, JSON (`util`, `json`)
 
@@ -106,7 +106,7 @@ Main classes:
 | `pairing` | `SdkToken` | Format check for an SDK token, and a safe set/unset status |
 | `noise` | `NoiseHandshake` | `Noise_XX_25519_AESGCM_SHA256` handshake; `initiator()` is the gadget |
 | `noise` | `NoiseTransport` | Encrypts requests, decrypts server frames, handles chunking |
-| `link` | `LinkFraming` | `/link-control` framing: length-prefixed JSON messages, keepalives |
+| `link` | `LinkFraming` | `/api/gadget/control` framing: length-prefixed JSON messages, keepalives |
 | `link` | `Upload` | Request-body size limits and 16 KiB chunking |
 | `text` | `Sentences`, `SentenceStream` | Sentence splitting for whole text / streamed deltas |
 
@@ -134,8 +134,8 @@ hs.readMessage2(receivedMsg2);         // receive
 byte[] msg3 = hs.writeMessage3();      // send
 NoiseTransport noise = hs.split();
 
-// 3. /link-control: open a stream, then send length-prefixed JSON messages
-NoiseTransport.Encrypted stream = noise.openStream("POST", "/link-control", null);
+// 3. /api/gadget/control: open a stream, then send length-prefixed JSON messages
+NoiseTransport.Encrypted stream = noise.openStream("POST", "/api/gadget/control", null, Envelope.SERVICE_GADGET);
 // send stream.frames, then:
 byte[] framed = LinkFraming.encode("{\"type\":\"...\"}");
 for (byte[] frame : noise.bodyChunk(stream.streamId, framed, false)) { /* send frame */ }
@@ -148,7 +148,7 @@ if (f != null && f.bodyChunk != null) {
 ```
 
 [`examples/MinimalExample.java`](examples/MinimalExample.java) is a complete, compilable program (no network)
-that runs a Noise handshake and exchanges one `/link-control` message each way. The tests in `tests/` (for
+that runs a Noise handshake and exchanges one `/api/gadget/control` message each way. The tests in `tests/` (for
 example `NoiseLoopbackTest`, `LinkFramingTest`) are runnable usages of each part.
 
 ## Service note

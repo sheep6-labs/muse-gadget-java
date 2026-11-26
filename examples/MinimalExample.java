@@ -1,4 +1,5 @@
 import dev.musegadget.core.link.LinkFraming;
+import dev.musegadget.core.noise.Envelope;
 import dev.musegadget.core.noise.Envelope.ServiceFrame;
 import dev.musegadget.core.noise.NoiseHandshake;
 import dev.musegadget.core.noise.NoiseTransport;
@@ -22,8 +23,8 @@ public final class MinimalExample {
         NoiseTransport gadget = gadgetHs.split();
         NoiseTransport server = serverHs.split();
 
-        // Gadget: open the /link-control stream, then send one length-prefixed JSON message on it
-        NoiseTransport.Encrypted stream = gadget.openStream("POST", "/link-control", null);
+        // Gadget: open the /api/gadget/control stream on the Gadget API service, then send one length-prefixed JSON message on it
+        NoiseTransport.Encrypted stream = gadget.openStream("POST", "/api/gadget/control", null, Envelope.SERVICE_GADGET);
         for (byte[] frame : stream.frames) server.peerDecryptFrame(frame); // "send" and "receive"
         byte[] hello = LinkFraming.encode("{\"type\":\"hello\"}");
         ServiceFrame atServer = null;
