@@ -30,6 +30,10 @@ Changes relative to the SDK:
   * net.ServerHosts is a pure-Java check mirroring the SDK's
     linux/src/musegadget/server_hosts.py (server-host allowlist, upstream
     #507): the host applies it to the servers named by pairing.
+  * noise.Envelope and noise.NoiseTransport mirror upstream #515 (control
+    stream on the Gadget API): service-tagged streams, with SERVICE_GADGET
+    (6) accepted by the envelope decoder and carried by every frame of a
+    stream opened with it. Chat streams stay on the daemon service.
 
 Intentional divergences from the SDK's behavior (hardening and API
 choices made in this port, not in the base version):
@@ -47,13 +51,14 @@ Checking upstream drift: the protocol surface this port depends on
 lives in the SDK's linux/ and protocols/ directories. Everything that
 changed upstream since the base commit is visible at
 https://github.com/facebookincubator/muse-gadget-sdk/compare/7b302e37561652eefcc8a4d58085de6f7f800f29...main
-As of 2026-11-25, upstream HEAD was
-fbfe3b0f717f7f468d0a94aa370ea0ca1a94ebfe. Upstream changes under linux/
+As of 2026-11-26, upstream HEAD was
+e8d2c98b7a40d8298f7d69f2fe50160da38b2002. Upstream changes under linux/
 since the base commit are numerous but concentrated in the Linux daemon's
 application layer (installer, doctor, wake word, proxy support, service
 management). The wire-protocol impact is limited to the server-host
-allowlist (#507, mirrored here as net.ServerHosts) and the added pairing
-test vectors.
+allowlist (#507, mirrored here as net.ServerHosts), the control stream's
+move to the Gadget API service (#515, mirrored here as service-tagged
+streams) and the added pairing test vectors.
 
 == Third-party dependency ==
 
