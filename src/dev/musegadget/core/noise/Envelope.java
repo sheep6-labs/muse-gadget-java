@@ -21,6 +21,9 @@ public final class Envelope {
     private Envelope() {}
 
     public static final int SERVICE_DAEMON = 0;
+    public static final int SERVICE_GADGET = 6;
+
+    static boolean knownService(long v) { return (v >= 0 && v <= 3) || v == SERVICE_GADGET; }
 
     public static final class Header {
         public final String key, value;
@@ -67,6 +70,8 @@ public final class Envelope {
         public ApplicationResponse response;
         public BodyChunk bodyChunk;
         public Reset reset;
+        /** Service named by the enclosing ServiceRequest; set only when decoded by the peer side. */
+        public int service;
 
         public static ServiceFrame request(long id, ApplicationRequest r) {
             ServiceFrame f = new ServiceFrame(); f.streamId = id; f.kind = Kind.REQUEST; f.request = r; return f;
@@ -252,7 +257,7 @@ public final class Envelope {
             if (in.field == 1) {
                 in.expect(Proto.WIRE_VARINT, "ServiceRequest.service");
                 long v = in.varint();
-                if (v < 0 || v > 3) throw new ProtoException("unknown service type");
+                if (!knownService(v)) throw new ProtoException("unknown service type");
                 r.service = (int) v;
             } else if (in.field == 2) { in.expect(Proto.WIRE_DELIMITED, "ServiceRequest.payload"); r.payload = in.delimited(); }
             else in.skip();

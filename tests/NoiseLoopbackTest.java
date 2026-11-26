@@ -16,6 +16,14 @@ import java.util.Random;
 /** Java initiator <-> Java responder, Noise_XX_25519_AESGCM_SHA256, 200 KB through chunking + envelope. */
 public final class NoiseLoopbackTest {
     /** {gadget, vm} transports from a fresh loopback handshake. */
+    static boolean acceptsService(int service) {
+        try {
+            return Envelope.decodeServiceRequest(Envelope.encodeServiceRequest(service, new byte[] {1})).service == service;
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
     static NoiseTransport[] pair() throws Exception {
         NoiseHandshake i = NoiseHandshake.initiator(), r = NoiseHandshake.responder();
         r.readMessage1(i.writeMessage1());
@@ -88,6 +96,30 @@ public final class NoiseLoopbackTest {
         T.check("streaming request has end_body=false", open != null && !open.request.endBody && "/link-control".equals(open.request.path));
         ServiceFrame rst = gadget.decryptFrame(vm.peerEncrypt(ServiceFrame.reset(2, new Envelope.Reset(Envelope.Reset.CANCELLED, "bye"))).get(0));
         T.check("reset frame (cancelled, reason)", rst != null && rst.kind == Kind.RESET && rst.reset.code == 1 && "bye".equals(rst.reset.reason));
+
+        T.check("daemon streams decode as service 0", open.service == Envelope.SERVICE_DAEMON);
+
+        // service-6 stream: request, body chunks and reset all carry the stream's service
+        NoiseTransport.Encrypted g = gadget.openStream("POST", "/api/gadget/control", null, Envelope.SERVICE_GADGET);
+        ServiceFrame gOpen = vm.peerDecryptFrame(g.frames.get(0));
+        T.check("service-6 stream request decoded", gOpen != null && gOpen.kind == Kind.REQUEST && gOpen.streamId == g.streamId
+                && "/api/gadget/control".equals(gOpen.request.path) && !gOpen.request.endBody);
+        T.check("service-6 request carries service 6", gOpen.service == Envelope.SERVICE_GADGET);
+        ServiceFrame gChunk = vm.peerDecryptFrame(gadget.bodyChunk(g.streamId, new byte[] {1, 2, 3}, false).get(0));
+        T.check("service-6 body chunk carries service 6", gChunk != null && gChunk.kind == Kind.BODY_CHUNK
+                && gChunk.service == Envelope.SERVICE_GADGET && Arrays.equals(new byte[] {1, 2, 3}, gChunk.bodyChunk.data));
+        ServiceFrame gReply = gadget.decryptFrame(vm.peerEncrypt(ServiceFrame.bodyChunk(g.streamId, new Envelope.BodyChunk(new byte[] {9}, false))).get(0));
+        T.check("service-6 stream receives replies", gReply != null && gReply.kind == Kind.BODY_CHUNK && gReply.streamId == g.streamId);
+        ServiceFrame gReset = vm.peerDecryptFrame(gadget.reset(g.streamId, Envelope.Reset.CANCELLED, "x").get(0));
+        T.check("service-6 reset carries service 6", gReset != null && gReset.kind == Kind.RESET && gReset.service == Envelope.SERVICE_GADGET);
+        NoiseTransport.Encrypted gOne = gadget.request("GET", "/api/gadget/me", new byte[0], null, Envelope.SERVICE_GADGET);
+        T.check("complete service-6 request", vm.peerDecryptFrame(gOne.frames.get(0)).service == Envelope.SERVICE_GADGET);
+        T.check("chat stream stays on service 0", vm.peerDecryptFrame(gadget.request("POST", "/chat/stream", new byte[0], null).frames.get(0)).service == Envelope.SERVICE_DAEMON);
+        boolean badSvc = false;
+        try { gadget.openStream("POST", "/x", null, 4); } catch (IllegalArgumentException e) { badSvc = true; }
+        T.check("unknown service refused when opening", badSvc);
+        T.check("decoder accepts services 0-3 and 6", acceptsService(0) && acceptsService(1) && acceptsService(2) && acceptsService(3) && acceptsService(6));
+        T.check("decoder rejects services 4, 5 and 7", !acceptsService(4) && !acceptsService(5) && !acceptsService(7));
 
         // empty body_chunk is allowed (end marker only)
         ServiceFrame end = vm.peerDecryptFrame(gadget.bodyChunk(2, new byte[0], true).get(0));

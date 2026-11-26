@@ -16,7 +16,9 @@ import dev.musegadget.core.noise.Envelope.ServiceFrame;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Post-handshake transport, mirroring SDK noise/transport.py {@code NoiseTransport}.
@@ -32,6 +34,7 @@ public final class NoiseTransport {
     private final CipherState send, recv;
     private final NoiseFrames.Decoder decoder = new NoiseFrames.Decoder();
     private final SecureRandom rnd = new SecureRandom();
+    private final Map<Long, Integer> streamServices = new HashMap<Long, Integer>();
     private long nextStreamId = 1;
     private boolean dead;
 
@@ -51,16 +54,30 @@ public final class NoiseTransport {
 
     /** A complete request (end_body = true). */
     public Encrypted request(String verb, String path, byte[] body, List<Header> headers) {
-        return open(verb, path, body, headers, true);
+        return request(verb, path, body, headers, Envelope.SERVICE_DAEMON);
+    }
+
+    /** A complete request addressed to {@code service}. */
+    public Encrypted request(String verb, String path, byte[] body, List<Header> headers, int service) {
+        return open(verb, path, body, headers, true, service);
     }
 
     /** Open a streaming request (end_body = false), e.g. {@code POST /link-control}. */
     public Encrypted openStream(String verb, String path, List<Header> headers) {
-        return open(verb, path, new byte[0], headers, false);
+        return openStream(verb, path, headers, Envelope.SERVICE_DAEMON);
     }
 
-    private Encrypted open(String verb, String path, byte[] body, List<Header> headers, boolean end) {
+    /**
+     * Open a streaming request addressed to {@code service}; later body chunks and resets for the
+     * stream carry the same service.
+     */
+    public Encrypted openStream(String verb, String path, List<Header> headers, int service) {
+        return open(verb, path, new byte[0], headers, false, service);
+    }
+
+    private Encrypted open(String verb, String path, byte[] body, List<Header> headers, boolean end, int service) {
         alive();
+        if (!Envelope.knownService(service)) throw new IllegalArgumentException("unknown service: " + service);
         try {
             long id = nextStreamId++;
             ApplicationRequest r = new ApplicationRequest();
@@ -69,7 +86,9 @@ public final class NoiseTransport {
             if (headers != null) r.headers = headers;
             r.body = body;
             r.endBody = end;
-            return new Encrypted(id, encryptRequest(ServiceFrame.request(id, r)));
+            List<byte[]> frames = encryptRequest(ServiceFrame.request(id, r), service);
+            if (!end) streamServices.put(id, service);
+            return new Encrypted(id, frames);
         } catch (RuntimeException e) {
             dead = true;
             throw e;
@@ -79,7 +98,9 @@ public final class NoiseTransport {
     public List<byte[]> bodyChunk(long streamId, byte[] data, boolean endBody) {
         alive();
         try {
-            return encryptRequest(ServiceFrame.bodyChunk(streamId, new BodyChunk(data, endBody)));
+            List<byte[]> frames = encryptRequest(ServiceFrame.bodyChunk(streamId, new BodyChunk(data, endBody)), serviceOf(streamId));
+            if (endBody) streamServices.remove(streamId);
+            return frames;
         } catch (RuntimeException e) {
             dead = true;
             throw e;
@@ -89,7 +110,9 @@ public final class NoiseTransport {
     public List<byte[]> reset(long streamId, int code, String reason) {
         alive();
         try {
-            return encryptRequest(ServiceFrame.reset(streamId, new Reset(code, reason)));
+            List<byte[]> frames = encryptRequest(ServiceFrame.reset(streamId, new Reset(code, reason)), serviceOf(streamId));
+            streamServices.remove(streamId);
+            return frames;
         } catch (RuntimeException e) {
             dead = true;
             throw e;
@@ -109,6 +132,7 @@ public final class NoiseTransport {
             if (payload.length == 0) throw new IllegalStateException("empty ServiceResponse payload");
             ServiceFrame f = Envelope.decodeFrame(payload);
             if (f.kind == Kind.REQUEST) throw new IllegalStateException("unexpected request frame from server");
+            if (f.kind == Kind.RESET) streamServices.remove(f.streamId);
             return f.kind == Kind.NONE ? null : f;
         } catch (RuntimeException e) {
             dead = true;
@@ -124,7 +148,10 @@ public final class NoiseTransport {
         try {
             byte[] whole = decoder.decode(decrypt(ciphertext));
             if (whole == null) return null;
-            return Envelope.decodeFrame(Envelope.decodeServiceRequest(whole).payload);
+            Envelope.ServiceRequest req = Envelope.decodeServiceRequest(whole);
+            ServiceFrame f = Envelope.decodeFrame(req.payload);
+            f.service = req.service;
+            return f;
         } catch (RuntimeException e) {
             dead = true;
             throw e;
@@ -143,8 +170,13 @@ public final class NoiseTransport {
 
     // ---- internals ----
 
-    private List<byte[]> encryptRequest(ServiceFrame f) {
-        return encryptChunks(Envelope.encodeServiceRequest(Envelope.SERVICE_DAEMON, Envelope.encodeFrame(f)));
+    private int serviceOf(long streamId) {
+        Integer s = streamServices.get(streamId);
+        return s == null ? Envelope.SERVICE_DAEMON : s;
+    }
+
+    private List<byte[]> encryptRequest(ServiceFrame f, int service) {
+        return encryptChunks(Envelope.encodeServiceRequest(service, Envelope.encodeFrame(f)));
     }
 
     private List<byte[]> encryptChunks(byte[] message) {
